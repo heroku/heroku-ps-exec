@@ -93,19 +93,5 @@ dyno="$(heroku ps --json | jq .[0].name -r)"
 #   status="$(heroku ps --json | jq .[0].status -r)"
 # end
 
-sleep 5
-
-heroku logs -d $dyno
-
-assert_contains "run." "$dyno"
-dump="$(heroku java:jstack --dyno $dyno)"
-
-assert_contains "Full thread dump OpenJDK" "$dump"
-
-dump="$(heroku java:jmap --dyno $dyno)"
-
-assert_contains "#instances" "$dump"
-assert_contains "java.lang.String" "$dump"
-
 echo ""
 echo "SUCCESS: All tests passed!"
