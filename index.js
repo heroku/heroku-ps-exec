@@ -1,15 +1,10 @@
 'use strict';
 exports.topic = {
-  name: 'java',
+  name: 'ps',
   description: 'Client tools for Heroku Exec'
 };
 
 exports.commands = [
-  require('./commands/jconsole.js')('java', 'jconsole'),
-  require('./commands/jvisualvm.js')('java', 'visualvm'),
-  require('./commands/jstack.js')('java', 'jstack'),
-  require('./commands/jmap.js')('java', 'jmap'),
-
   require('./commands/ssh.js')('ps', 'exec'),
   require('./commands/socks.js')('ps', 'socks'),
   require('./commands/port.js')('ps', 'forward'),

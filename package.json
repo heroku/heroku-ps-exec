@@ -1,12 +1,12 @@
 {
-  "name": "heroku-cli-exec",
+  "name": "heroku-ps-exec",
   "version": "1.11.0",
-  "description": "Heroku-Exec CLI",
+  "description": "Heroku Exec CLI",
   "main": "index.js",
   "author": "Joe Kutner",
-  "repository": "heroku/heroku-cli-exec",
+  "repository": "heroku/heroku-ps-exec",
   "bugs": {
-    "url": "https://github.com/heroku/heroku-cli-exec/issues"
+    "url": "https://github.com/heroku/heroku-ps-exec/issues"
   },
   "scripts": {
     "test": "mocha",
