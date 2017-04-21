@@ -2,6 +2,7 @@
 
 const child = require('child_process');
 const cli = require('heroku-cli-util');
+const exec = require('heroku-exec-util');
 const co = require('co');
 const Client = require('ssh2').Client;
 const https = require('https')
@@ -10,8 +11,6 @@ const tty = require('tty');
 const path = require('path');
 const fs = require('fs');
 const stream = require('stream');
-const helpers = require('../lib/helpers')
-const ssh = require('../lib/ssh')
 
 module.exports = function(topic, command) {
   return {
@@ -37,13 +36,13 @@ function * run(context, heroku) {
   if (fs.existsSync(dest)) {
     cli.error(`The local file ${cli.color.white.bold(dest)} already exists!`)
   } else {
-    yield helpers.initAddon(context, heroku, function *(configVars) {
-      yield helpers.updateClientKey(context, heroku, configVars, function(privateKey, dyno, response) {
+    yield exec.initAddon(context, heroku, function *(configVars) {
+      yield exec.updateClientKey(context, heroku, configVars, function(privateKey, dyno, response) {
         var message = `Connecting to ${cli.color.cyan.bold(dyno)} on ${cli.color.app(context.app)}`
         cli.action(message, {success: false}, co(function* () {
           cli.hush(response.body);
           var json = JSON.parse(response.body);
-          ssh.scp(context, json['tunnel_host'], json['client_user'], privateKey, src, dest)
+          exec.scp(context, json['tunnel_host'], json['client_user'], privateKey, src, dest)
         }))
       })
     });
