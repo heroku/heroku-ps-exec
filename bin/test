@@ -137,3 +137,4 @@ echo "=== test 7: success"
 
 echo ""
 echo "SUCCESS: All tests passed!"
+exit 0
