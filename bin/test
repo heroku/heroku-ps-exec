@@ -21,7 +21,7 @@ assert_contains() {
 }
 
 cleanup() {
-  local app=${1}
+  local app="${1}"
   echo ''
   echo 'Cleaning up...'
   heroku destroy ${app} --confirm ${app}
