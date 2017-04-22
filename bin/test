@@ -20,6 +20,33 @@ assert_contains() {
   fi
 }
 
+cleanup() {
+  local app=${1}
+  echo ''
+  echo 'Cleaning up...'
+  heroku destroy ${app} --confirm ${app}
+  cd ../..
+  rm -rf tmp/${app}
+
+  pgid=$(ps -o pgid= $$ | grep -o [0-9]*)
+  echo "Killing processes in group $pgid..."
+  kill -- -$pgid
+}
+
+wait_for() {
+  local cmd=${1}
+  sleep 2
+  attempts=0
+  until $(${cmd}); do
+    attempts=$((attempts+1))
+    if [ $attempts -gt 10 ]; then
+      echo "Too many attempts waiting for service!"
+      exit 1
+    fi
+    sleep 2
+  done
+}
+
 set -e
 
 heroku plugins:link .
@@ -44,7 +71,7 @@ heroku buildpacks:set https://github.com/ryandotsmith/null-buildpack
 git add Procfile
 git commit -m "first"
 
-trap "{ echo ''; echo 'Cleaning up...'; heroku destroy ${app} --confirm ${app}; cd ../..; rm -rf tmp/${app}; }" EXIT
+trap "{ cleanup ${app}; }" EXIT
 
 initOutput="$(heroku ps:exec "ls" 2>&1)"
 assert_contains "Creating heroku-exec" "$initOutput"
@@ -83,15 +110,30 @@ output="$(heroku ps:exec --status)"
 assert_contains "web.1" "$output"
 assert_contains "running" "$output"
 assert_contains "up" "$output"
+echo "=== test 4: success"
 
+file_to_copy="file-to-copy.txt"
 heroku ps:scale web=0
-heroku run:detached "echo 'class A{public static void main(String[] a) throws Exception{while(true){Thread.sleep(1000);}}}' > A.java; javac A.java; java A"
+heroku run:detached "echo 'success' > ${file_to_copy}; ruby -rwebrick -e'WEBrick::HTTPServer.new(:Port => 3000, :DocumentRoot => Dir.pwd).start'"
 dyno="$(heroku ps --json | jq .[0].name -r)"
 
-# status="null"
-# while [ "$status" != "up" ]; do
-#   status="$(heroku ps --json | jq .[0].status -r)"
-# end
+sleep 5
+
+heroku logs -d $dyno
+
+assert_contains "run." "$dyno"
+output="$(heroku ps:copy --dyno $dyno $file_to_copy)"
+assert_contains "Copying ${file_to_copy} to ${file_to_copy}" "$output"
+assert_contains "success" "$(cat ${file_to_copy})"
+echo "=== test 5: success"
+
+eval "heroku ps:forward --app $app --dyno $dyno 3000 &"
+wait_for "curl -o /dev/null -s -I -f localhost:3000"
+assert_contains "${file_to_copy}" "$(curl -s -L localhost:3000)"
+echo "=== test 6: success"
+
+assert_contains "${file_to_copy}" "$(curl --socks5 localhost:1080 -s -L 0.0.0.0:3000)"
+echo "=== test 7: success"
 
 echo ""
 echo "SUCCESS: All tests passed!"
