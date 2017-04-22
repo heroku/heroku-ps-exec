@@ -34,7 +34,7 @@ cleanup() {
 }
 
 wait_for() {
-  local cmd=${1}
+  local cmd="${1}"
   sleep 2
   attempts=0
   until $(${cmd}); do
