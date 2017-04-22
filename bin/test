@@ -30,7 +30,7 @@ cleanup() {
 
   pgid=$(ps -o pgid= $$ | grep -o [0-9]*)
   echo "Killing processes in group $pgid..."
-  kill -- -$pgid
+  kill -15 -$pgid
 }
 
 wait_for() {
