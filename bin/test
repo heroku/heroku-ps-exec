@@ -76,7 +76,7 @@ git commit -m "first"
 trap "{ cleanup ${app}; }" EXIT
 
 initOutput="$(heroku ps:exec "ls" 2>&1)"
-assert_contains "Initializing feature and restarting dynos" "$initOutput"
+assert_contains "Initializing feature" "$initOutput"
 assert_contains "Adding the Heroku Exec buildpack" "$initOutput"
 assert_contains "Run the following commands to redeploy your app" "$initOutput"
 assert_contains "git push heroku master" "$initOutput"
