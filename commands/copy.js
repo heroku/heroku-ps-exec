@@ -36,7 +36,7 @@ function * run(context, heroku) {
   if (fs.existsSync(dest)) {
     cli.error(`The local file ${cli.color.white.bold(dest)} already exists!`)
   } else {
-    yield exec.initAddon(context, heroku, function *(configVars) {
+    yield exec.initFeature(context, heroku, function *(configVars) {
       yield exec.updateClientKey(context, heroku, configVars, function(privateKey, dyno, response) {
         var message = `Connecting to ${cli.color.cyan.bold(dyno)} on ${cli.color.app(context.app)}`
         cli.action(message, {success: false}, co(function* () {

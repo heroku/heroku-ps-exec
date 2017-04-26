@@ -24,7 +24,7 @@ module.exports = function(topic, command) {
 };
 
 function * run(context, heroku) {
-  yield exec.initAddon(context, heroku, function *(configVars) {
+  yield exec.initFeature(context, heroku, function *(configVars) {
     yield exec.checkStatus(context, heroku, configVars);
   });
 }
