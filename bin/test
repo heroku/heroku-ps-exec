@@ -75,7 +75,7 @@ git commit -m "first"
 
 trap "{ cleanup ${app}; }" EXIT
 
-if [ "${1}" == "staging" ]; then
+if [ "${1}" == "staging" ] ||  "${HEROKU_EXEC_TEST_ENV}" == "staging" ]; then
   echo "=== skipping init tests"
   export HEROKU_EXEC_URL="https://heroku-exec-staging.herokuapp.com/"
   heroku buildpacks:add https://github.com/heroku/exec-buildpack#staging

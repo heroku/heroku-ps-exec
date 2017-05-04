@@ -6,3 +6,6 @@ before_install:
 - sh etc/travis-setup.sh
 script: "sh bin/test"
 after_script: heroku keys:remove $USER@`hostname`
+env:
+  - HEROKU_EXEC_TEST_ENV=prod
+  - HEROKU_EXEC_TEST_ENV=staging
