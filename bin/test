@@ -112,7 +112,7 @@ done
 echo ""
 
 heroku ps:exec pwd
-# assert_equal "/app" "$(heroku ps:exec pwd)"
+assert_equal "0" "$?"
 
 output="$(heroku ps:exec --status)"
 assert_contains "web.1" "$output"
