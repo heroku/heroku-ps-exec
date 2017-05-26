@@ -16,7 +16,7 @@ module.exports = function(topic, command) {
     topic: topic,
     command: command,
     description: 'Forward traffic on a local port to a dyno',
-    help: `Usage: heroku ${topic}:${command} PORT`,
+    help: `Usage: \`heroku ${topic}:${command} PORT\``,
     args: [{name: 'port', optional: false}],
     flags: [
       { name: 'dyno', char: 'd', hasValue: true, description: 'specify the dyno to connect to' },

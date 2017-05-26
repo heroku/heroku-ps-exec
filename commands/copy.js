@@ -17,7 +17,7 @@ module.exports = function(topic, command) {
     topic: topic,
     command: command,
     description: 'Copy a file from a dyno to the local filesystem',
-    help: `Usage: heroku ${topic}:${command} FILENAME`,
+    help: `Usage: \`heroku ${topic}:${command} FILENAME\``,
     args: [ {name: 'file'} ],
     flags: [
       { name: 'dyno', char: 'd', hasValue: true, description: 'specify the dyno to connect to' },
