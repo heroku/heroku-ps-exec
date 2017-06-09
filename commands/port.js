@@ -49,4 +49,5 @@ function * run(context, heroku) {
       }).listen(localPort);
     });
   });
+  return new Promise(resolve => {})
 }

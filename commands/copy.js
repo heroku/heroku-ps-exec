@@ -47,4 +47,5 @@ function * run(context, heroku) {
       })
     });
   }
+  return new Promise(resolve => {})
 }
