@@ -1,0 +1,11 @@
+machine:
+  node:
+    version: 7.8.0
+
+test:
+  pre:
+    - sh etc/travis-setup.sh
+  override:
+    - sh bin/test
+  post:
+    - heroku keys:remove $USER@`hostname`
