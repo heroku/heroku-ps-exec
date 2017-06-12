@@ -5,8 +5,8 @@ machine:
 test:
   pre:
     - sh etc/ci-setup.sh
+    - yarn install
   override:
-    - heroku update
     - sh bin/test
   post:
     - heroku keys:remove $USER@`hostname`
