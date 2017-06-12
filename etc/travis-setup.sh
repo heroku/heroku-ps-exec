@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-[ "$TRAVIS" != "true" ] && echo "Not running on Travis!" && exit 1
+[ "$CI" != "true" ] && echo "Not running on CI!" && exit 1
 
 git config --global user.email ${HEROKU_API_USER:-"heroku-exec@example.com"}
 git config --global user.name 'HerokuExecTester'
