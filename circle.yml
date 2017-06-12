@@ -6,7 +6,7 @@ test:
   pre:
     - sh etc/ci-setup.sh
   override:
-    - npm install
+    - heroku update
     - sh bin/test
   post:
     - heroku keys:remove $USER@`hostname`
