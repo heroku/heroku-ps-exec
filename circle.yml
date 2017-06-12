@@ -4,8 +4,9 @@ machine:
 
 test:
   pre:
-    - sh etc/travis-setup.sh
+    - sh etc/ci-setup.sh
   override:
+    - npm install
     - sh bin/test
   post:
     - heroku keys:remove $USER@`hostname`
