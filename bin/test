@@ -49,9 +49,9 @@ wait_for() {
   done
 }
 
-set -e
-
 heroku plugins:link .
+
+set -e
 
 app="heroku-exec-test-${RANDOM:-$TRAVIS_JOB_ID}"
 echo "Preparing test app ${app}..."
