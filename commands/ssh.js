@@ -19,6 +19,7 @@ module.exports = function(topic, command) {
     variableArgs: true,
     flags: [
       { name: 'dyno', char: 'd', hasValue: true, description: 'specify the dyno to connect to' },
+      { name: 'ssh', hasValue: false, description: 'use native ssh' },
       { name: 'status', hasValue: false, description: 'lists the status of the SSH server in the dyno' }],
     needsApp: true,
     needsAuth: true,
@@ -36,7 +37,11 @@ function * run(context, heroku) {
         cli.action(message, {success: false}, co(function* () {
           cli.hush(response.body);
           var json = JSON.parse(response.body);
-          exec.connect(context, json['tunnel_host'], json['client_user'], privateKey);
+          if (context.flags.ssh) {
+            exec.ssh(context, json['client_user'], json['tunnel_host'], privateKey);
+          } else {
+            exec.connect(context, json['tunnel_host'], json['client_user'], privateKey);
+          }
         }))
       })
     }

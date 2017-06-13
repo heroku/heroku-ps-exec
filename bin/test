@@ -111,7 +111,7 @@ while [ "up" != "$state" ]; do
 done
 echo ""
 
-heroku ps:exec pwd
+heroku ps:exec --ssh pwd
 assert_equal "0" "$?"
 
 output="$(heroku ps:exec --status)"
