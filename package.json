@@ -1,6 +1,6 @@
 {
   "name": "heroku-ps-exec",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Heroku Exec CLI",
   "main": "index.js",
   "author": "Joe Kutner",
