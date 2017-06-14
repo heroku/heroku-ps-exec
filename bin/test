@@ -28,7 +28,7 @@ cleanup() {
   cd ../..
   rm -rf tmp/${app}
 
-  if [ "$TRAVIS" != "true" ]; then
+  if [ "$CI" != "true" ]; then
     pgid=$(ps -o pgid= $$ | grep -o [0-9]*)
     echo "Killing processes in group $pgid..."
     kill -- -$pgid
