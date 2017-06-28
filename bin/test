@@ -127,6 +127,11 @@ dyno="$(heroku ps --json | jq .[0].name -r)"
 
 sleep 5
 
+output="$(heroku ps:exec --status)"
+assert_contains "$dyno" "$output"
+assert_contains "running" "$output"
+assert_contains "up" "$output"
+
 heroku logs -d $dyno
 
 assert_contains "run." "$dyno"
