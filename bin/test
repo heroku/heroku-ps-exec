@@ -125,7 +125,7 @@ heroku ps:scale web=0
 heroku run:detached "echo 'success' > ${file_to_copy}; ruby -rwebrick -e'WEBrick::HTTPServer.new(:Port => 3000, :DocumentRoot => Dir.pwd).start'"
 dyno="$(heroku ps --json | jq .[0].name -r)"
 
-sleep 5
+sleep 8
 
 output="$(heroku ps:exec --status)"
 assert_contains "$dyno" "$output"
