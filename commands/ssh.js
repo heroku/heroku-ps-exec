@@ -17,7 +17,7 @@ module.exports = function(topic, command) {
     description: 'Create an SSH session to a dyno',
     help: `Example:
     
-     heroku ${topic}:${command}`,
+    heroku ${topic}:${command}`,
     variableArgs: true,
     flags: [
       { name: 'dyno', char: 'd', hasValue: true, description: 'specify the dyno to connect to' },
