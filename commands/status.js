@@ -15,7 +15,9 @@ module.exports = function(topic, command) {
     topic: topic,
     command: command,
     description: 'Check the status of your heroku-exec add-on',
-    help: `Usage: heroku ${topic}:${command}`,
+    help: `Example: 
+
+    $ heroku ${topic}:${command}`,
     args: [],
     needsApp: true,
     needsAuth: true,

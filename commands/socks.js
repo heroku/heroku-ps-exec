@@ -14,7 +14,9 @@ module.exports = function(topic, command) {
     topic: topic,
     command: command,
     description: 'Launch a SOCKS proxy into a dyno',
-    help: `Usage: heroku ${topic}:${command}`,
+    help: `Example: 
+
+    $ heroku ${topic}:${command}`,
     args: [],
     flags: [{ name: 'dyno', char: 'd', hasValue: true, description: 'specify the dyno to connect to' }],
     needsApp: true,
