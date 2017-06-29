@@ -28,7 +28,7 @@ cleanup() {
   cd ../..
   rm -rf tmp/${app}
 
-  if [ "$TRAVIS" != "true" ]; then
+  if [ "$CI" != "true" ]; then
     pgid=$(ps -o pgid= $$ | grep -o [0-9]*)
     echo "Killing processes in group $pgid..."
     kill -- -$pgid
@@ -49,11 +49,11 @@ wait_for() {
   done
 }
 
-set -e
-
 heroku plugins:link .
 
-app="heroku-exec-test-${RANDOM:-$TRAVIS_JOB_ID}"
+set -e
+
+app="heroku-exec-test-${RANDOM}"
 echo "Preparing test app ${app}..."
 
 mkdir -p tmp
@@ -111,7 +111,7 @@ while [ "up" != "$state" ]; do
 done
 echo ""
 
-heroku ps:exec pwd
+heroku ps:exec --ssh pwd
 assert_equal "0" "$?"
 
 output="$(heroku ps:exec --status)"
@@ -126,6 +126,11 @@ heroku run:detached "echo 'success' > ${file_to_copy}; ruby -rwebrick -e'WEBrick
 dyno="$(heroku ps --json | jq .[0].name -r)"
 
 sleep 5
+
+output="$(heroku ps:exec --status)"
+assert_contains "$dyno" "$output"
+assert_contains "running" "$output"
+assert_contains "up" "$output"
 
 heroku logs -d $dyno
 
