@@ -68,7 +68,7 @@ web="ruby -rwebrick -e\"s=WEBrick::HTTPServer.new(:BindAddress => '0.0.0.0', :Po
 echo "web: ${web}" > Procfile
 
 echo "Creating Heroku app..."
-heroku create ${app}
+heroku create ${app} --region ${HEROKU_REGION:-us}
 heroku buildpacks:set https://github.com/ryandotsmith/null-buildpack
 git add Procfile
 git commit -m "first"
