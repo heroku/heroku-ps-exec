@@ -73,6 +73,8 @@ heroku buildpacks:set https://github.com/ryandotsmith/null-buildpack
 git add Procfile
 git commit -m "first"
 
+heroku features:enable runtime-heroku-exec
+
 trap "{ cleanup ${app}; }" EXIT
 
 if [ "${1}" == "staging" ] || [ "${HEROKU_EXEC_TEST_ENV}" == "staging" ]; then
@@ -80,12 +82,12 @@ if [ "${1}" == "staging" ] || [ "${HEROKU_EXEC_TEST_ENV}" == "staging" ]; then
   export HEROKU_EXEC_URL="https://heroku-exec-staging.herokuapp.com/"
   heroku buildpacks:add https://github.com/heroku/exec-buildpack#staging
 else
-  initOutput="$(heroku ps:exec "ls" 2>&1)"
-  assert_contains "Initializing feature" "$initOutput"
-  assert_contains "Adding the Heroku Exec buildpack" "$initOutput"
-  assert_contains "Run the following commands to redeploy your app" "$initOutput"
-  assert_contains "git push heroku master" "$initOutput"
-  echo "=== test 1: success"
+  # initOutput="$(heroku ps:exec "ls" 2>&1)"
+  # assert_contains "Initializing feature" "$initOutput"
+  # assert_contains "Adding the Heroku Exec buildpack" "$initOutput"
+  # assert_contains "Run the following commands to redeploy your app" "$initOutput"
+  # assert_contains "git push heroku master" "$initOutput"
+  # echo "=== test 1: success"
 
   assert_contains "Heroku Exec is not running!" "$(heroku ps:exec --status 2>&1)"
   echo "=== test 2: success"
