@@ -68,20 +68,31 @@ web="ruby -rwebrick -e\"s=WEBrick::HTTPServer.new(:BindAddress => '0.0.0.0', :Po
 echo "web: ${web}" > Procfile
 
 echo "Creating Heroku app..."
-heroku create ${app} --region ${HEROKU_REGION:-us} ${HEROKU_SPACE_OPTION}
+heroku create ${app} --region ${HEROKU_REGION:-us} $([ -n "$HEROKU_SPACE" ] && echo "--space $HEROKU_SPACE")
 
 trap "{ cleanup ${app}; }" EXIT
 
 heroku buildpacks:set https://github.com/ryandotsmith/null-buildpack
 git add Procfile
 git commit -m "first"
-heroku features:enable runtime-heroku-exec # TODO would be better to test that the command prompts to confirm restart
 
 if [ "${1}" == "staging" ] || [ "${HEROKU_EXEC_TEST_ENV}" == "staging" ]; then
   echo "=== skipping init tests"
   export HEROKU_EXEC_URL="https://heroku-exec-staging.herokuapp.com/"
   heroku buildpacks:add https://github.com/heroku/exec-buildpack#staging
 else
+  if [ -n "$HEROKU_SPACE" ]; then
+    initOutput="$(heroku ps:exec "ls" 2>&1)"
+    assert_contains "Initializing feature" "$initOutput"
+    assert_contains "Adding the Heroku Exec buildpack" "$initOutput"
+    assert_contains "Run the following commands to redeploy your app" "$initOutput"
+    assert_contains "git push heroku master" "$initOutput"
+    echo "=== test 0: success"
+  else
+    # TODO would be better to test that the command prompts to confirm restart
+    heroku features:enable runtime-heroku-exec
+  fi
+
   assert_contains "Heroku Exec is not running!" "$(heroku ps:exec --status 2>&1)"
   echo "=== test 1: success"
 
