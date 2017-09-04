@@ -80,27 +80,27 @@ if [ "${1}" == "staging" ] || [ "${HEROKU_EXEC_TEST_ENV}" == "staging" ]; then
   echo "=== skipping init tests"
   export HEROKU_EXEC_URL="https://heroku-exec-staging.herokuapp.com/"
   heroku buildpacks:add https://github.com/heroku/exec-buildpack#staging
-else
-  if [ -n "$HEROKU_SPACE" ]; then
-    initOutput="$(heroku ps:exec "ls" 2>&1)"
-    assert_contains "Initializing feature" "$initOutput"
-    assert_contains "Adding the Heroku Exec buildpack" "$initOutput"
-    assert_contains "Run the following commands to redeploy your app" "$initOutput"
-    assert_contains "git push heroku master" "$initOutput"
-    echo "=== test 0: success"
-  else
-    # TODO would be better to test that the command prompts to confirm restart
-    heroku features:enable runtime-heroku-exec
-  fi
-
-  assert_contains "Heroku Exec is not running!" "$(heroku ps:exec --status 2>&1)"
-  echo "=== test 1: success"
-
-  output="$(heroku ps:exec ls 2>&1)"
-  assert_contains "Establishing credentials" "$output"
-  assert_contains "Could not connect to dyno!" "$output"
-  echo "=== test 2: success"
 fi
+
+if [ -n "$HEROKU_SPACE" ]; then
+  initOutput="$(heroku ps:exec "ls" 2>&1)"
+  assert_contains "Initializing feature" "$initOutput"
+  assert_contains "Adding the Heroku Exec buildpack" "$initOutput"
+  assert_contains "Run the following commands to redeploy your app" "$initOutput"
+  assert_contains "git push heroku master" "$initOutput"
+  echo "=== test 0: success"
+else
+  # TODO would be better to test that the command prompts to confirm restart
+  heroku features:enable runtime-heroku-exec
+fi
+
+assert_contains "Heroku Exec is not running!" "$(heroku ps:exec --status 2>&1)"
+echo "=== test 1: success"
+
+output="$(heroku ps:exec ls 2>&1)"
+assert_contains "Establishing credentials" "$output"
+assert_contains "Could not connect to dyno!" "$output"
+echo "=== test 2: success"
 
 echo "Deploying..."
 git push heroku master
@@ -131,6 +131,7 @@ heroku ps:scale web=0
 heroku run:detached "echo 'success' > ${file_to_copy}; ruby -rwebrick -e'WEBrick::HTTPServer.new(:Port => 3000, :DocumentRoot => Dir.pwd).start'"
 dyno="$(heroku ps --json | jq .[0].name -r)"
 
+# TODO check dyno status, especially for spaces
 sleep 8
 
 output="$(heroku ps:exec --status)"
