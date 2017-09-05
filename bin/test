@@ -49,6 +49,21 @@ wait_for() {
   done
 }
 
+wait_for_dyno() {
+  local dyno=${1:-web}
+  echo -n "Waiting for dyno..."
+  state="starting"
+  while [ "up" != "$state" ]; do
+    if [ "starting" != "$state" ] && [ "provisioning" != "$state" ]; then
+      echo "WARNING: dyno state is \"${state}\""
+    fi
+    echo -n "."
+    sleep 4
+    state=$(heroku ps ${dyno} --json | jq .[0].state -r)
+  done
+  echo ""
+}
+
 heroku plugins:link .
 
 set -e
@@ -68,7 +83,7 @@ web="ruby -rwebrick -e\"s=WEBrick::HTTPServer.new(:BindAddress => '0.0.0.0', :Po
 echo "web: ${web}" > Procfile
 
 echo "Creating Heroku app..."
-heroku create ${app} --region ${HEROKU_REGION:-us} $([ -n "$HEROKU_SPACE" ] && echo "--space $HEROKU_SPACE")
+heroku create ${app} $(if [ -n "$HEROKU_SPACE" ]; then echo "--space $HEROKU_SPACE"; else echo "--region ${HEROKU_REGION:-us}"; fi)
 
 trap "{ cleanup ${app}; }" EXIT
 
@@ -105,17 +120,7 @@ echo "=== test 2: success"
 echo "Deploying..."
 git push heroku master
 
-echo -n "Waiting for dyno..."
-state="starting"
-while [ "up" != "$state" ]; do
-  if [ "starting" != "$state" ] && [ "provisioning" != "$state" ]; then
-    echo "WARNING: dyno state is \"${state}\""
-  fi
-  echo -n "."
-  sleep 4
-  state=$(heroku ps --json | jq .[0].state -r)
-done
-echo ""
+wait_for_dyno "web"
 
 heroku ps:exec --ssh pwd
 assert_equal "0" "$?"
@@ -131,8 +136,7 @@ heroku ps:scale web=0
 heroku run:detached "echo 'success' > ${file_to_copy}; ruby -rwebrick -e'WEBrick::HTTPServer.new(:Port => 3000, :DocumentRoot => Dir.pwd).start'"
 dyno="$(heroku ps --json | jq .[0].name -r)"
 
-# TODO check dyno status, especially for spaces
-sleep 8
+wait_for_dyno "run"
 
 output="$(heroku ps:exec --status)"
 assert_contains "$dyno" "$output"
