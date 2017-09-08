@@ -68,33 +68,39 @@ web="ruby -rwebrick -e\"s=WEBrick::HTTPServer.new(:BindAddress => '0.0.0.0', :Po
 echo "web: ${web}" > Procfile
 
 echo "Creating Heroku app..."
-heroku create ${app}
+heroku create ${app} --region ${HEROKU_REGION:-us} $([ -n "$HEROKU_SPACE" ] && echo "--space $HEROKU_SPACE")
+
+trap "{ cleanup ${app}; }" EXIT
+
 heroku buildpacks:set https://github.com/ryandotsmith/null-buildpack
 git add Procfile
 git commit -m "first"
-
-trap "{ cleanup ${app}; }" EXIT
 
 if [ "${1}" == "staging" ] || [ "${HEROKU_EXEC_TEST_ENV}" == "staging" ]; then
   echo "=== skipping init tests"
   export HEROKU_EXEC_URL="https://heroku-exec-staging.herokuapp.com/"
   heroku buildpacks:add https://github.com/heroku/exec-buildpack#staging
-else
+fi
+
+if [ -n "$HEROKU_SPACE" ]; then
   initOutput="$(heroku ps:exec "ls" 2>&1)"
   assert_contains "Initializing feature" "$initOutput"
   assert_contains "Adding the Heroku Exec buildpack" "$initOutput"
   assert_contains "Run the following commands to redeploy your app" "$initOutput"
   assert_contains "git push heroku master" "$initOutput"
-  echo "=== test 1: success"
-
-  assert_contains "Heroku Exec is not running!" "$(heroku ps:exec --status 2>&1)"
-  echo "=== test 2: success"
-
-  output="$(heroku ps:exec ls 2>&1)"
-  assert_contains "Establishing credentials" "$output"
-  assert_contains "Could not connect to dyno!" "$output"
-  echo "=== test 3: success"
+  echo "=== test 0: success"
+else
+  # TODO would be better to test that the command prompts to confirm restart
+  heroku features:enable runtime-heroku-exec
 fi
+
+assert_contains "Heroku Exec is not running!" "$(heroku ps:exec --status 2>&1)"
+echo "=== test 1: success"
+
+output="$(heroku ps:exec ls 2>&1)"
+assert_contains "Establishing credentials" "$output"
+assert_contains "Could not connect to dyno!" "$output"
+echo "=== test 2: success"
 
 echo "Deploying..."
 git push heroku master
@@ -102,11 +108,11 @@ git push heroku master
 echo -n "Waiting for dyno..."
 state="starting"
 while [ "up" != "$state" ]; do
-  if [ "starting" != "$state" ]; then
+  if [ "starting" != "$state" ] && [ "provisioning" != "$state" ]; then
     echo "WARNING: dyno state is \"${state}\""
   fi
   echo -n "."
-  sleep 2
+  sleep 4
   state=$(heroku ps --json | jq .[0].state -r)
 done
 echo ""
@@ -118,14 +124,15 @@ output="$(heroku ps:exec --status)"
 assert_contains "web.1" "$output"
 assert_contains "running" "$output"
 assert_contains "up" "$output"
-echo "=== test 4: success"
+echo "=== test 3: success"
 
 file_to_copy="file-to-copy.txt"
 heroku ps:scale web=0
 heroku run:detached "echo 'success' > ${file_to_copy}; ruby -rwebrick -e'WEBrick::HTTPServer.new(:Port => 3000, :DocumentRoot => Dir.pwd).start'"
 dyno="$(heroku ps --json | jq .[0].name -r)"
 
-sleep 5
+# TODO check dyno status, especially for spaces
+sleep 8
 
 output="$(heroku ps:exec --status)"
 assert_contains "$dyno" "$output"
@@ -138,15 +145,15 @@ assert_contains "run." "$dyno"
 output="$(heroku ps:copy --dyno $dyno $file_to_copy)"
 assert_contains "Copying ${file_to_copy} to ${file_to_copy}" "$output"
 assert_contains "success" "$(cat ${file_to_copy})"
-echo "=== test 5: success"
+echo "=== test 4: success"
 
 eval "heroku ps:forward --app $app --dyno $dyno 3000 &"
 wait_for "curl -o /dev/null -s -I -f localhost:3000"
 assert_contains "${file_to_copy}" "$(curl -s -L localhost:3000)"
-echo "=== test 6: success"
+echo "=== test 5: success"
 
 assert_contains "${file_to_copy}" "$(curl --socks5 localhost:1080 -s -L 0.0.0.0:3000)"
-echo "=== test 7: success"
+echo "=== test 6: success"
 
 echo ""
 echo "SUCCESS: All tests passed!"

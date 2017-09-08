@@ -5,7 +5,7 @@ node_js:
 - '7.8.0'
 before_install:
 - bash etc/ci-setup.sh
-script: "bash bin/test"
+script: "npm test"
 after_script: heroku keys:remove $USER@`hostname`
 env:
   - HEROKU_EXEC_TEST_ENV=prod

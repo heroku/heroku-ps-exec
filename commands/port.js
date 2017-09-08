@@ -8,7 +8,7 @@ const https = require('https')
 const http = require('http')
 const fs = require('fs')
 const co = require('co');
-const socks = require('socksv5')
+const socks = require('@heroku/socksv5')
 var net = require("net");
 
 module.exports = function(topic, command) {
