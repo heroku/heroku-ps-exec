@@ -8,17 +8,18 @@ const https = require('https')
 const http = require('http')
 const fs = require('fs')
 const co = require('co');
+const {AppDynoCompletion} = require('cli-engine-heroku');
 
 module.exports = function(topic, command) {
   return {
     topic: topic,
     command: command,
     description: 'Launch a SOCKS proxy into a dyno',
-    help: `Example: 
+    help: `Example:
 
     $ heroku ${topic}:${command}`,
     args: [],
-    flags: [{ name: 'dyno', char: 'd', hasValue: true, description: 'specify the dyno to connect to' }],
+    flags: [{ name: 'dyno', char: 'd', hasValue: true, description: 'specify the dyno to connect to', completion: AppDynoCompletion}],
     needsApp: true,
     needsAuth: true,
     run: cli.command(co.wrap(run))

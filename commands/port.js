@@ -10,6 +10,7 @@ const fs = require('fs')
 const co = require('co');
 const socks = require('@heroku/socksv5')
 var net = require("net");
+const {AppDynoCompletion} = require('cli-engine-heroku');
 
 module.exports = function(topic, command) {
   return {
@@ -21,7 +22,7 @@ module.exports = function(topic, command) {
     $ heroku ${topic}:${command} PORT`,
     args: [{name: 'port', optional: false}],
     flags: [
-      { name: 'dyno', char: 'd', hasValue: true, description: 'specify the dyno to connect to' },
+      { name: 'dyno', char: 'd', hasValue: true, description: 'specify the dyno to connect to', completion: AppDynoCompletion},
       { name: 'localPort', char: 'p', hasValue: true, description: 'the local port to use' } ],
     needsApp: true,
     needsAuth: true,
