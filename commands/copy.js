@@ -19,7 +19,7 @@ module.exports = function(topic, command) {
     description: 'Copy a file from a dyno to the local filesystem',
     help: `Example:
 
-    $ heroku dyno:copy FILENAME --app murmuring-headland-14719`,
+    $ heroku ps:copy FILENAME --app murmuring-headland-14719`,
     args: [ {name: 'file'} ],
     flags: [
       { name: 'dyno', char: 'd', hasValue: true, description: 'specify the dyno to connect to' },
