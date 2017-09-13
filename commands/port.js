@@ -19,7 +19,7 @@ module.exports = function(topic, command) {
     description: 'Forward traffic on a local port to a dyno',
     help: `Example:
 
-    $ heroku ${topic}:${command} PORT`,
+    $ heroku ps:forward 8080 --app murmuring-headland-14719`,
     args: [{name: 'port', optional: false}],
     flags: [
       { name: 'dyno', char: 'd', hasValue: true, description: 'specify the dyno to connect to', completion: AppDynoCompletion},

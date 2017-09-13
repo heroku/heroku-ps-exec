@@ -17,7 +17,10 @@ module.exports = function(topic, command) {
     description: 'Launch a SOCKS proxy into a dyno',
     help: `Example:
 
-    $ heroku ${topic}:${command}`,
+    $ heroku ps:socks --app murmuring-headland-14719
+    Establishing credentials... done
+    SOCKSv5 proxy server started on port 1080
+    Use CTRL+C to stop the proxy`,
     args: [],
     flags: [{ name: 'dyno', char: 'd', hasValue: true, description: 'specify the dyno to connect to', completion: AppDynoCompletion}],
     needsApp: true,
