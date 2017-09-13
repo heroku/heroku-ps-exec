@@ -11,6 +11,7 @@ const tty = require('tty');
 const path = require('path');
 const fs = require('fs');
 const stream = require('stream');
+const {AppDynoCompletion} = require('cli-engine-heroku');
 
 module.exports = function(topic, command) {
   return {
@@ -22,7 +23,7 @@ module.exports = function(topic, command) {
     $ heroku ps:copy FILENAME --app murmuring-headland-14719`,
     args: [ {name: 'file'} ],
     flags: [
-      { name: 'dyno', char: 'd', hasValue: true, description: 'specify the dyno to connect to' },
+      { name: 'dyno', char: 'd', hasValue: true, description: 'specify the dyno to connect to', completion: AppDynoCompletion},
       { name: 'output', char: 'o', hasValue: true, description: 'the name of the output file' }],
     needsApp: true,
     needsAuth: true,
