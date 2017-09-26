@@ -8,7 +8,6 @@ const https = require('https')
 const http = require('http')
 const fs = require('fs')
 const co = require('co');
-const {AppDynoCompletion} = require('cli-engine-heroku');
 
 module.exports = function(topic, command) {
   return {
@@ -22,7 +21,7 @@ module.exports = function(topic, command) {
     SOCKSv5 proxy server started on port 1080
     Use CTRL+C to stop the proxy`,
     args: [],
-    flags: [{ name: 'dyno', char: 'd', hasValue: true, description: 'specify the dyno to connect to', completion: AppDynoCompletion}],
+    flags: [{ name: 'dyno', char: 'd', hasValue: true, description: 'specify the dyno to connect to' }],
     needsApp: true,
     needsAuth: true,
     run: cli.command(co.wrap(run))
