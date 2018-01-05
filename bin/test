@@ -61,6 +61,7 @@ wait_for_dyno() {
     sleep 4
     state=$(heroku ps ${dyno} --json | jq .[0].state -r)
   done
+  sleep 5
   echo ""
 }
 
@@ -77,10 +78,13 @@ rm -rf ${app}
 mkdir ${app}
 cd ${app}
 
+file_to_copy="file-to-copy.txt"
+
 echo "Creating git repo..."
 git init
 web="ruby -rwebrick -e\"s=WEBrick::HTTPServer.new(:BindAddress => '0.0.0.0', :Port => \$PORT, :DocumentRoot => Dir.pwd); s.mount_proc('/'){|q,r| r.body='Hello'}; s.start\""
 echo "web: ${web}" > Procfile
+echo "worker: echo 'success' > ${file_to_copy}; ruby -rwebrick -e'WEBrick::HTTPServer.new(:Port => 3000, :DocumentRoot => Dir.pwd).start'" >> Procfile
 
 echo "Creating Heroku app..."
 heroku create ${app} $(if [ -n "$HEROKU_SPACE" ]; then echo "--space $HEROKU_SPACE"; else echo "--region ${HEROKU_REGION:-us}"; fi)
@@ -131,12 +135,12 @@ assert_contains "running" "$output"
 assert_contains "up" "$output"
 echo "=== test 3: success"
 
-file_to_copy="file-to-copy.txt"
 heroku ps:scale web=0
-heroku run:detached "echo 'success' > ${file_to_copy}; ruby -rwebrick -e'WEBrick::HTTPServer.new(:Port => 3000, :DocumentRoot => Dir.pwd).start'"
-dyno="$(heroku ps --json | jq .[0].name -r)"
+heroku ps:scale worker=1
 
-wait_for_dyno "run"
+dyno="worker.1"
+wait_for_dyno "worker"
+echo "Dyno ${dyno} is ready!"
 
 output="$(heroku ps:exec --status)"
 assert_contains "$dyno" "$output"
@@ -145,7 +149,7 @@ assert_contains "up" "$output"
 
 heroku logs -d $dyno
 
-assert_contains "run." "$dyno"
+assert_contains "worker." "$dyno"
 output="$(heroku ps:copy --dyno $dyno $file_to_copy)"
 assert_contains "Copying ${file_to_copy} to ${file_to_copy}" "$output"
 assert_contains "success" "$(cat ${file_to_copy})"
