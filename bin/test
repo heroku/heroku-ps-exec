@@ -65,7 +65,7 @@ wait_for_dyno() {
   echo ""
 }
 
-heroku plugins:link .
+heroku plugins:link . --force
 
 set -e
 
