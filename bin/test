@@ -22,6 +22,7 @@ assert_contains() {
 
 cleanup() {
   local app="${1}"
+  local extra_pid="${2}"
   echo ''
   echo 'Cleaning up...'
   heroku destroy ${app} --confirm ${app}
@@ -29,9 +30,11 @@ cleanup() {
   rm -rf tmp/${app}
 
   if [ "$CI" != "true" ]; then
-    pgid=$(ps -o pgid= $$ | grep -o [0-9]*)
+    pgid=$(ps -o pgid= $$ | grep -o '[0-9]*$')
     echo "Killing processes in group $pgid..."
     kill -- -$pgid
+  elif [ -n "$extra_pid" ]; then
+    kill $extra_pid
   fi
 }
 
@@ -156,6 +159,8 @@ assert_contains "success" "$(cat ${file_to_copy})"
 echo "=== test 4: success"
 
 eval "heroku ps:forward --app $app --dyno $dyno 3000 &"
+trap "{ cleanup ${app} $!; }" EXIT
+
 wait_for "curl -o /dev/null -s -I -f localhost:3000"
 assert_contains "${file_to_copy}" "$(curl -s -L localhost:3000)"
 echo "=== test 5: success"
