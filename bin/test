@@ -12,11 +12,16 @@ assert_equal() {
 assert_contains() {
   local expected="${1}"
   local actual="${2}"
+  local return_instead_of_exit="${3}"
   if echo "$actual" | grep -qi "$expected"; then
     :
   else
     echo "\nFAILED: expected ${expected} to match ${actual}"
-    exit 1
+    if [ "$return_instead_of_exit" == true ]; then
+      return 1
+    else
+      exit 1
+    fi
   fi
 }
 
@@ -66,6 +71,24 @@ wait_for_dyno() {
   done
   sleep 5
   echo ""
+}
+
+with_retry() {
+  local cmd=${1}
+  local assert_func=${2}
+  local n=0
+  until [ $n -ge 3 ]; do
+    local output="$($cmd)"
+    set +e
+    $assert_func "$output"
+    local result="$?"
+    set -e
+    [ "$result" == "0" ] && return 0
+    n=$[$n+1]
+    sleep 1
+    echo "Retrying..."
+  done
+  exit 1
 }
 
 heroku plugins:link . --force
@@ -132,10 +155,14 @@ wait_for_dyno "web"
 heroku ps:exec --ssh pwd
 assert_equal "0" "$?"
 
-output="$(heroku ps:exec --status)"
-assert_contains "web.1" "$output"
-assert_contains "running" "$output"
-assert_contains "up" "$output"
+
+_web_status_assert() {
+  assert_contains "web.1" "$output" true && \
+  assert_contains "running" "$output" true && \
+  assert_contains "up" "$output" true
+  return $?
+}
+with_retry "heroku ps:exec --status" "_web_status_assert"
 echo "=== test 3: success"
 
 heroku ps:scale web=0
@@ -145,17 +172,25 @@ dyno="worker.1"
 wait_for_dyno "worker"
 echo "Dyno ${dyno} is ready!"
 
-output="$(heroku ps:exec --status)"
-assert_contains "$dyno" "$output"
-assert_contains "running" "$output"
-assert_contains "up" "$output"
+_worker_status_assert() {
+  assert_contains "$dyno" "$1" true && \
+  assert_contains "running" "$1" true && \
+  assert_contains "up" "$1" true
+  return $?
+}
+with_retry "heroku ps:exec --status" "_worker_status_assert"
 
 heroku logs -d $dyno
 
 assert_contains "worker." "$dyno"
-output="$(heroku ps:copy --dyno $dyno $file_to_copy)"
-assert_contains "Copying ${file_to_copy} to ${file_to_copy}" "$output"
-assert_contains "success" "$(cat ${file_to_copy})"
+
+_ps_copy_assert() {
+  assert_contains "Copying ${file_to_copy} to ${file_to_copy}" "$output" true && \
+  assert_contains "success" "$(cat ${file_to_copy})"
+  return $?
+}
+with_retry "heroku ps:copy --dyno $dyno $file_to_copy" "_ps_copy_assert"
+
 echo "=== test 4: success"
 
 eval "heroku ps:forward --app $app --dyno $dyno 3000 &"
