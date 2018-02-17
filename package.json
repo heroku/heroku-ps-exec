@@ -32,7 +32,7 @@
     "@oclif/dev-cli": "^1.2.16",
     "@oclif/plugin-legacy": "^1.0.4"
   },
-  "oclif": {
+  "cli-engine": {
     "topics": {
       "ps": {
         "description": "Client tools for Heroku Exec"
