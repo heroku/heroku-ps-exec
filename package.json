@@ -30,6 +30,13 @@
   },
   "devDependencies": {
     "@oclif/dev-cli": "^1.2.16",
-    "@oclif/plugin-legacy": "^1.0.2"
+    "@oclif/plugin-legacy": "^1.0.4"
+  },
+  "oclif": {
+    "topics": {
+      "ps": {
+        "description": "Client tools for Heroku Exec"
+      }
+    }
   }
 }
