@@ -1,6 +1,6 @@
 {
-  "name": "heroku-ps-exec",
-  "version": "2.3.1",
+  "name": "@heroku-cli/plugin-ps-exec",
+  "version": "2.3.3",
   "description": "Heroku Exec CLI",
   "main": "index.js",
   "author": "Joe Kutner",
@@ -18,7 +18,25 @@
     "heroku-cli-util": "^7.0.0",
     "heroku-exec-util": "0.7.0"
   },
+  "files": [
+    ".oclif.manifest.json",
+    "index.js",
+    "commands"
+  ],
   "scripts": {
-    "test": "bash bin/test"
+    "test": "bash bin/test",
+    "prepublishOnly": "oclif-dev manifest",
+    "postpublish": "rm .oclif.manifest.json"
+  },
+  "devDependencies": {
+    "@oclif/dev-cli": "^1.2.16",
+    "@oclif/plugin-legacy": "^1.0.4"
+  },
+  "cli-engine": {
+    "topics": {
+      "ps": {
+        "description": "Client tools for Heroku Exec"
+      }
+    }
   }
 }
