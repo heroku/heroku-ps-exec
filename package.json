@@ -16,7 +16,7 @@
   "license": "ISC",
   "dependencies": {
     "heroku-cli-util": "^7.0.0",
-    "heroku-exec-util": "0.7.1"
+    "heroku-exec-util": "0.7.2"
   },
   "scripts": {
     "test": "bash bin/test"
