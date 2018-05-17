@@ -15,7 +15,7 @@
   ],
   "license": "ISC",
   "dependencies": {
-    "heroku-cli-util": "^7.0.0",
+    "heroku-cli-util": "^8.0.8",
     "heroku-exec-util": "0.7.2"
   },
   "files": [
@@ -29,8 +29,8 @@
     "postpublish": "rm .oclif.manifest.json"
   },
   "devDependencies": {
-    "@oclif/dev-cli": "^1.2.16",
-    "@oclif/plugin-legacy": "^1.0.4"
+    "@oclif/dev-cli": "^1.13.20",
+    "@oclif/plugin-legacy": "^1.0.15"
   },
   "cli-engine": {
     "topics": {
