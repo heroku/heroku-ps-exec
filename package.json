@@ -19,20 +19,22 @@
     "heroku-exec-util": "0.7.3"
   },
   "files": [
-    ".oclif.manifest.json",
+    "oclif.manifest.json",
     "index.js",
     "commands"
   ],
   "scripts": {
     "test": "bash bin/test",
+    "version": "oclif-dev readme && git add README.md",
     "prepublishOnly": "oclif-dev manifest",
-    "postpublish": "rm .oclif.manifest.json"
+    "postpublish": "rm oclif.manifest.json"
   },
   "devDependencies": {
     "@oclif/dev-cli": "^1.13.20",
     "@oclif/plugin-legacy": "^1.0.15"
   },
   "cli-engine": {
+    "bin": "heroku",
     "topics": {
       "ps": {
         "description": "Client tools for Heroku Exec"
