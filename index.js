@@ -1,7 +1,7 @@
 'use strict';
 exports.topic = {
   name: 'ps',
-  description: 'Client tools for Heroku Exec'
+  description: 'list dynos for an app'
 };
 
 exports.commands = [
