@@ -1,7 +1,6 @@
 'use strict';
 exports.topic = {
-  name: 'ps',
-  description: 'list dynos for an app'
+  name: 'ps'
 };
 
 exports.commands = [
