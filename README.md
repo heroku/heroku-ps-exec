@@ -67,6 +67,11 @@ OPTIONS
   -r, --remote=remote        git remote of app to use
 
 DESCRIPTION
+  Provide a port or comma-separated list of ports to forward.
+
+  For example, "4000,9000:9001" will forward port 4000 to port 4000 and
+  port 9000 to port 9001.
+
   Example:
 
        $ heroku ps:forward 8080 --app murmuring-headland-14719
