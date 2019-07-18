@@ -42,8 +42,6 @@ function * run(context, heroku) {
     })
 
     yield exec.createSocksProxy(context, heroku, configVars, function(dynoIp, dynoName, socksPort) {
-      cli.log(`Use ${cli.color.magenta('CTRL+C')} to stop port fowarding`)
-
       portMappings.forEach(function(portMapping) {
         const localPort = portMapping[0]
         const remotePort = portMapping[1]
@@ -63,6 +61,8 @@ function * run(context, heroku) {
           });
         }).listen(localPort);
       })
+
+      cli.log(`Use ${cli.color.magenta('CTRL+C')} to stop port fowarding`)
     });
   });
   return new Promise(resolve => {})
