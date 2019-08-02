@@ -27,7 +27,7 @@ module.exports = function(topic, command) {
     args: [{name: 'port', optional: false}],
     flags: [
       { name: 'dyno', char: 'd', hasValue: true, description: 'specify the dyno to connect to' },
-      { name: 'localPort', char: 'p', hasValue: true, description: 'the local port to use' } ],
+      { name: 'localPort', char: 'p', hasValue: true, hidden: true, description: 'the local port to use' } ],
     needsApp: true,
     needsAuth: true,
     run: cli.command(co.wrap(run))
@@ -38,7 +38,10 @@ function * run(context, heroku) {
   yield exec.initFeature(context, heroku, function *(configVars) {
     const portMappings = context.args.port.split(',').map(function(portMapping) {
       const ports = portMapping.split(':')
-      return [ports[0], ports[1] || ports[0]]
+
+      // this will error out if localPort is used with multiple ports, but
+      // that's ok because localPort is only here for backwards compat
+      return [ports[0], ports[1] || context.flags.localPort || ports[0]]
     })
 
     yield exec.createSocksProxy(context, heroku, configVars, function(dynoIp, dynoName, socksPort) {
