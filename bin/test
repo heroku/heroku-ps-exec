@@ -71,7 +71,7 @@ wait_for_dyno() {
     state=$(heroku ps ${dyno} --json | jq .[0].state -r)
   done
   sleep 5
-  echo ""
+  echo "Dyno started"
 }
 
 with_retry() {
