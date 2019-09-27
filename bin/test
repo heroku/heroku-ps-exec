@@ -91,7 +91,7 @@ with_retry() {
   exit 1
 }
 
-heroku plugins:link . --force
+heroku plugins:link .
 
 set -e
 
