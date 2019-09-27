@@ -16,7 +16,7 @@
   "license": "ISC",
   "dependencies": {
     "heroku-cli-util": "^8.0.8",
-    "heroku-exec-util": "0.7.3",
+    "heroku-exec-util": "0.7.4",
     "lodash": "^4.17.13"
   },
   "files": [

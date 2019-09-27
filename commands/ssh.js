@@ -40,7 +40,7 @@ function * run (context, heroku) {
           cli.hush(response.body)
           var json = JSON.parse(response.body)
           if (context.flags.ssh) {
-            exec.ssh(context, json['client_user'], json['tunnel_host'], privateKey)
+            exec.ssh(context, json['client_user'], json['tunnel_host'], privateKey, json['proxy_public_key'])
           } else {
             exec.connect(context, json['tunnel_host'], json['client_user'], privateKey)
           }
