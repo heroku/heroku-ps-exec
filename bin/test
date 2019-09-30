@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 assert_equal() {
   local expected="${1}"
@@ -12,7 +13,7 @@ assert_equal() {
 assert_contains() {
   local expected="${1}"
   local actual="${2}"
-  local return_instead_of_exit="${3}"
+  local return_instead_of_exit="${3-}"
   if echo "$actual" | grep -qi "$expected"; then
     :
   else
@@ -27,7 +28,7 @@ assert_contains() {
 
 cleanup() {
   local app="${1}"
-  local extra_pid="${2}"
+  local extra_pid="${2-}"
   echo ''
   echo 'Cleaning up...'
   heroku destroy ${app} --confirm ${app}
@@ -91,9 +92,7 @@ with_retry() {
   exit 1
 }
 
-heroku plugins:link . --force
-
-set -e
+heroku plugins:link .
 
 app="heroku-exec-test-${RANDOM}"
 echo "Preparing test app ${app}..."
@@ -121,13 +120,13 @@ heroku buildpacks:set https://github.com/ryandotsmith/null-buildpack
 git add Procfile
 git commit -m "first"
 
-if [ "${1}" == "staging" ] || [ "${HEROKU_EXEC_TEST_ENV}" == "staging" ]; then
+if [ "${1-}" == "staging" ] || [ "${HEROKU_EXEC_TEST_ENV-}" == "staging" ]; then
   echo "=== skipping init tests"
   export HEROKU_EXEC_URL="https://heroku-exec-staging.herokuapp.com/"
   heroku buildpacks:add https://github.com/heroku/exec-buildpack#staging
 fi
 
-if [ -n "$HEROKU_SPACE" ]; then
+if [ -n "${HEROKU_SPACE-}" ]; then
   initOutput="$(heroku ps:exec "ls" 2>&1)"
   assert_contains "Initializing feature" "$initOutput"
   assert_contains "Adding the Heroku Exec buildpack" "$initOutput"
