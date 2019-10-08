@@ -71,7 +71,7 @@ wait_for_dyno() {
     state=$(heroku ps ${dyno} --json | jq .[0].state -r)
   done
   sleep 5
-  echo ""
+  echo "Dyno started"
 }
 
 with_retry() {
@@ -122,7 +122,7 @@ git commit -m "first"
 
 if [ "${1-}" == "staging" ] || [ "${HEROKU_EXEC_TEST_ENV-}" == "staging" ]; then
   echo "=== skipping init tests"
-  export HEROKU_EXEC_URL="https://heroku-exec-staging.herokuapp.com/"
+  export HEROKU_EXEC_URL="https://exec-manager-staging.herokai.com/"
   heroku buildpacks:add https://github.com/heroku/exec-buildpack#staging
 fi
 
