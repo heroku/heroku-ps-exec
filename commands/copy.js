@@ -38,7 +38,7 @@ function * run(context, heroku) {
         cli.action(message, {success: false}, co(function* () {
           cli.hush(response.body);
           var json = JSON.parse(response.body);
-          exec.scp(context, json['tunnel_host'], json['client_user'], privateKey, src, dest)
+          exec.scp(context, json['tunnel_host'], json['client_user'], privateKey, json['proxy_public_key'], src, dest)
         }))
       })
     });
