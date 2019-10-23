@@ -1,14 +1,8 @@
 'use strict'
 
-const child = require('child_process')
 const cli = require('heroku-cli-util')
 const exec = require('heroku-exec-util')
 const co = require('co')
-const Client = require('ssh2').Client
-const https = require('https')
-const url = require('url')
-const tty = require('tty')
-const stream = require('stream')
 
 module.exports = function (topic, command) {
   return {
@@ -40,9 +34,9 @@ function * run (context, heroku) {
           cli.hush(response.body)
           var json = JSON.parse(response.body)
           if (context.flags.ssh) {
-            exec.ssh(context, json['client_user'], json['tunnel_host'], privateKey, json['proxy_public_key'])
+            exec.ssh(context, json['tunnel_host'], json['client_user'], privateKey, json['proxy_public_key'])
           } else {
-            exec.connect(context, json['tunnel_host'], json['client_user'], privateKey)
+            exec.connect(context, json['tunnel_host'], json['client_user'], privateKey, json['proxy_public_key'])
           }
         }))
       })

@@ -1,16 +1,10 @@
 'use strict';
 
-const child = require('child_process');
 const cli = require('heroku-cli-util');
 const exec = require('heroku-exec-util');
 const co = require('co');
-const Client = require('ssh2').Client;
-const https = require('https')
-const url = require('url');
-const tty = require('tty');
 const path = require('path');
 const fs = require('fs');
-const stream = require('stream');
 
 module.exports = function(topic, command) {
   return {
@@ -44,7 +38,7 @@ function * run(context, heroku) {
         cli.action(message, {success: false}, co(function* () {
           cli.hush(response.body);
           var json = JSON.parse(response.body);
-          exec.scp(context, json['tunnel_host'], json['client_user'], privateKey, src, dest)
+          exec.scp(context, json['tunnel_host'], json['client_user'], privateKey, json['proxy_public_key'], src, dest)
         }))
       })
     });
