@@ -64,4 +64,4 @@ If you're new to our project and looking for some way to make your first contrib
 > **NOTE**: Be sure to [sync your fork](https://help.github.com/articles/syncing-a-fork/) before making a pull request.
 
 # License
-By contributing your code, you agree to license your contribution under the terms of our project [LICENSE](LICENSE) and to sign the [Salesforce CLA](https://cla.salesforce.com/sign-cla)
+By contributing your code, you agree to license your contribution under the terms of our project [LICENSE](LICENSE.md) and to sign the [Salesforce CLA](https://cla.salesforce.com/sign-cla)
