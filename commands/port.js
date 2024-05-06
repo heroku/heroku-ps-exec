@@ -60,7 +60,7 @@ function * run(context, heroku) {
         }).listen(localPort);
       })
 
-      cli.log(`Use ${cli.color.magenta('CTRL+C')} to stop port fowarding`)
+      cli.log(`Use ${cli.color.magenta('CTRL+C')} to stop port forwarding`)
     });
   });
   return new Promise(resolve => {})
