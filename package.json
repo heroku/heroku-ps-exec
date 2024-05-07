@@ -1,6 +1,6 @@
 {
   "name": "@heroku-cli/plugin-ps-exec",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "description": "Heroku Exec CLI",
   "main": "index.js",
   "author": "Heroku",
@@ -15,8 +15,8 @@
   ],
   "license": "ISC",
   "dependencies": {
-    "@heroku/heroku-cli-util": "^8.0.13",
-    "@heroku-cli/heroku-exec-util": "0.8.2"
+    "@heroku-cli/heroku-exec-util": "0.8.2",
+    "@heroku/heroku-cli-util": "^8.0.13"
   },
   "files": [
     "oclif.manifest.json",
