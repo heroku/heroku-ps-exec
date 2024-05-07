@@ -60,13 +60,14 @@
     open "^6.2.0"
     uuid "^8.3.0"
 
-"@heroku-cli/heroku-exec-util@0.8.0":
-  version "0.8.0"
-  resolved "https://registry.yarnpkg.com/@heroku-cli/heroku-exec-util/-/heroku-exec-util-0.8.0.tgz#c15a7963ebf40835faf85f4114b93729b2934c38"
-  integrity sha512-IcfDnZK+OKMLJZJJmpejdH13Tnb2kQTHWocXOBpFnEliI5kQVs5p/hyef0Hi8ne9zhBxTJmfex570puazoB6tg==
+"@heroku-cli/heroku-exec-util@0.8.2":
+  version "0.8.2"
+  resolved "https://registry.yarnpkg.com/@heroku-cli/heroku-exec-util/-/heroku-exec-util-0.8.2.tgz#356a0f516db5d27c95a705b1f76f739b006a5028"
+  integrity sha512-KNYXKt4msDHJEs0/yLzfH7chTURlgJuGGIeVE2BrAIVR/0j6G2ItDCu6TBtfGJfJu3tc8U35YLIKxsRNQBlrFQ==
   dependencies:
     "@heroku/heroku-cli-util" "^8.0.13"
     "@heroku/socksv5" "^0.0.9"
+    co "4.6.0"
     co-wait "0.0.0"
     keypair "1.0.4"
     node-forge "1.3.0"
@@ -641,6 +642,11 @@ clone-response@^1.0.2:
 co-wait@0.0.0:
   version "0.0.0"
   resolved "https://registry.yarnpkg.com/co-wait/-/co-wait-0.0.0.tgz#c22372032218edbf6ed915e433546c21e445628b"
+
+co@4.6.0:
+  version "4.6.0"
+  resolved "https://registry.yarnpkg.com/co/-/co-4.6.0.tgz#6ea6bdf3d853ae54ccb8e47bfa0bf3f9031fb184"
+  integrity sha512-QVb0dM5HvG+uaxitm8wONl7jltx8dqhfU33DcqtOZcLSVIKSDDLDi7+0LbAKiyI8hD9u42m2YxXSkMGWThaecQ==
 
 color-convert@^1.9.0:
   version "1.9.1"

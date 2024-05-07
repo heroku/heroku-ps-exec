@@ -16,7 +16,7 @@
   "license": "ISC",
   "dependencies": {
     "@heroku/heroku-cli-util": "^8.0.13",
-    "@heroku-cli/heroku-exec-util": "0.8.0"
+    "@heroku-cli/heroku-exec-util": "0.8.2"
   },
   "files": [
     "oclif.manifest.json",
