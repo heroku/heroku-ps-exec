@@ -25,7 +25,7 @@ OPTIONS
 DESCRIPTION
   Example:
 
-       $ heroku ps:copy FILENAME --app murmuring-headland-14719
+      $ heroku ps:copy FILENAME --app murmuring-headland-14719
 ```
 
 ## `heroku ps:exec`
@@ -46,7 +46,7 @@ OPTIONS
 DESCRIPTION
   Example:
 
-       $ heroku ps:exec 'node -i' --app murmuring-headland-14719
+      $ heroku ps:exec 'node -i' --app murmuring-headland-14719
 ```
 
 ## `heroku ps:forward PORT`
@@ -65,12 +65,12 @@ OPTIONS
 DESCRIPTION
   Provide a port or comma-separated list of ports to forward.
 
-       For example, "4000,9000:9001" will forward port 4000 to port 4000 and
-       port 9000 to port 9001.
+      For example, "4000,9000:9001" will forward port 4000 to port 4000 and
+      port 9000 to port 9001.
 
-       Example:
+      Example:
 
-       $ heroku ps:forward 8080 --app murmuring-headland-14719
+      $ heroku ps:forward 8080 --app murmuring-headland-14719
 ```
 
 ## `heroku ps:socks`
@@ -89,9 +89,9 @@ OPTIONS
 DESCRIPTION
   Example:
 
-       $ heroku ps:socks --app murmuring-headland-14719
-       Establishing credentials... done
-       SOCKSv5 proxy server started on port 1080
-       Use CTRL+C to stop the proxy
+      $ heroku ps:socks --app murmuring-headland-14719
+      Establishing credentials... done
+      SOCKSv5 proxy server started on port 1080
+      Use CTRL+C to stop the proxy
 ```
 <!-- commandsstop -->
