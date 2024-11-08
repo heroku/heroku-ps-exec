@@ -24,7 +24,7 @@ module.exports = function (topic, command) {
 }
 
 function * run (context, heroku) {
-  yield exec.initFeature(context, heroku, function *(configVars) {
+  yield exec.initFeature(context, heroku, 'exec', function *(configVars) {
     if (context.flags.status) {
       yield exec.checkStatus(context, heroku, configVars)
     } else {
