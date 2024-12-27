@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -eo pipefail
 
 assert_equal() {
   local expected="${1}"
@@ -110,14 +110,37 @@ git init
 web="ruby -rwebrick -e\"s=WEBrick::HTTPServer.new(:BindAddress => '0.0.0.0', :Port => \$PORT, :DocumentRoot => Dir.pwd); s.mount_proc('/'){|q,r| r.body='Hello'}; s.start\""
 echo "web: ${web}" > Procfile
 echo "worker: echo 'success' > ${file_to_copy}; ruby -rwebrick -e'WEBrick::HTTPServer.new(:Port => 3000, :DocumentRoot => Dir.pwd).start'" >> Procfile
+cat <<-EOF > Gemfile
+source "https://rubygems.org"
+ruby "3.2.6"
+gem "webrick"
+EOF
+cat <<-EOF > Gemfile.lock
+GEM
+  remote: https://rubygems.org/
+  specs:
+    webrick (1.9.0)
+
+PLATFORMS
+  ruby
+  x86_64-linux
+
+DEPENDENCIES
+  webrick
+
+RUBY VERSION
+   ruby 3.2.6p234
+
+BUNDLED WITH
+   2.4.19
+EOF
 
 echo "Creating Heroku app..."
 heroku create ${app} $(if [ -n "$HEROKU_SPACE" ]; then echo "--space $HEROKU_SPACE"; else echo "--region ${HEROKU_REGION:-us}"; fi)
 
 trap "{ cleanup ${app}; }" EXIT
 
-heroku buildpacks:set https://github.com/ryandotsmith/null-buildpack
-git add Procfile
+git add Procfile Gemfile Gemfile.lock
 git commit -m "first"
 
 if [ "${1-}" == "staging" ] || [ "${HEROKU_EXEC_TEST_ENV-}" == "staging" ]; then
@@ -147,7 +170,7 @@ assert_contains "Could not connect to dyno!" "$output"
 echo "=== test 2: success"
 
 echo "Deploying..."
-git push heroku master
+git push heroku main
 
 wait_for_dyno "web"
 

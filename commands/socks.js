@@ -24,7 +24,7 @@ module.exports = function(topic, command) {
 };
 
 function * run(context, heroku) {
-  yield exec.initFeature(context, heroku, function *(configVars) {
+  yield exec.initFeature(context, heroku, 'socks', function *(configVars) {
     yield exec.createSocksProxy(context, heroku, configVars)
   });
   return new Promise(resolve => {})
