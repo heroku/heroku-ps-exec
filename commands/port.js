@@ -30,7 +30,7 @@ module.exports = function(topic, command) {
 };
 
 function * run(context, heroku) {
-  yield exec.initFeature(context, heroku, function *(configVars) {
+  yield exec.initFeature(context, heroku, 'forward', function *(configVars) {
     const portMappings = context.args.port.split(',').map(function(portMapping) {
       const ports = portMapping.split(':')
 
@@ -50,7 +50,7 @@ function * run(context, heroku) {
           socks.connect({
             host: '0.0.0.0',
             port: remotePort,
-            proxyHost: '127.0.0.1',
+            proxyHost: 'localhost',
             proxyPort: socksPort,
             auths: [ socks.auth.None() ]
           }, function(socket) {
