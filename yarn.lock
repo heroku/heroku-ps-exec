@@ -60,10 +60,10 @@
     open "^6.2.0"
     uuid "^8.3.0"
 
-"@heroku-cli/heroku-exec-util@0.9.0":
-  version "0.9.0"
-  resolved "https://registry.yarnpkg.com/@heroku-cli/heroku-exec-util/-/heroku-exec-util-0.9.0.tgz#2ca6ed23f79c2377d8856cad2a7b7f4448f8f89c"
-  integrity sha512-Yc+BQ+A1ATg0srZUbEXI9KDkr8IY0beSmnZLIeQOpSSVDTEpuOwPavXo/OD+xLlvDLf3A1SXlTvVzqeDjJ/XKA==
+"@heroku-cli/heroku-exec-util@0.9.1":
+  version "0.9.1"
+  resolved "https://registry.yarnpkg.com/@heroku-cli/heroku-exec-util/-/heroku-exec-util-0.9.1.tgz#a8ca6d0001733f71fbfd3e7d160e1bddc7bc16fa"
+  integrity sha512-R/EqVo5GYxV5Euir+MxrBjv4zFO2dvtvoyJTUTwNOWPHFUyuRzPDlPxOxczdaPu+hAUHtzkwem67fRIX4mOXLw==
   dependencies:
     "@heroku/heroku-cli-util" "^8.0.13"
     "@heroku/socksv5" "^0.0.9"
