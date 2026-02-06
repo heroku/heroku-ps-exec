@@ -1,6 +1,6 @@
 {
   "name": "@heroku-cli/plugin-ps-exec",
-  "version": "2.6.4",
+  "version": "2.6.5",
   "description": "Heroku Exec CLI",
   "main": "index.js",
   "author": "Heroku",
