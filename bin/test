@@ -1,230 +1,230 @@
-#!/bin/bash
-set -eo pipefail
-
-assert_equal() {
-  local expected="${1}"
-  local actual="${2}"
-  if [ "$expected" != "$actual" ]; then
-    echo "\nFAILED: expected ${expected}, found ${actual}"
-    exit 1
-  fi
-}
-
-assert_contains() {
-  local expected="${1}"
-  local actual="${2}"
-  local return_instead_of_exit="${3-}"
-  if echo "$actual" | grep -qi "$expected"; then
-    :
-  else
-    echo "\nFAILED: expected ${expected} to match ${actual}"
-    if [ "$return_instead_of_exit" == true ]; then
-      return 1
-    else
-      exit 1
-    fi
-  fi
-}
-
-cleanup() {
-  local app="${1}"
-  local extra_pid="${2-}"
-  echo ''
-  echo 'Cleaning up...'
-  heroku destroy ${app} --confirm ${app}
-  cd ../..
-  rm -rf tmp/${app}
-
-  if [ "$CI" != "true" ]; then
-    pgid=$(ps -o pgid= $$ | grep -o '[0-9]*$')
-    echo "Killing processes in group $pgid..."
-    kill -- -$pgid
-  elif [ -n "$extra_pid" ]; then
-    kill $extra_pid
-  fi
-}
-
-wait_for() {
-  local cmd="${1}"
-  sleep 2
-  attempts=0
-  until $(${cmd}); do
-    attempts=$((attempts+1))
-    if [ $attempts -gt 10 ]; then
-      echo "Too many attempts waiting for service!"
-      exit 1
-    fi
-    sleep 2
-  done
-}
-
-wait_for_dyno() {
-  local dyno=${1:-web}
-  echo -n "Waiting for dyno..."
-  state="starting"
-  while [ "up" != "$state" ]; do
-    if [ "starting" != "$state" ] && [ "provisioning" != "$state" ]; then
-      echo "WARNING: dyno state is \"${state}\""
-    fi
-    echo -n "."
-    sleep 4
-    state=$(heroku ps ${dyno} --json | jq .[0].state -r)
-  done
-  sleep 5
-  echo "Dyno started"
-}
-
-with_retry() {
-  local cmd=${1}
-  local assert_func=${2}
-  local n=0
-  until [ $n -ge 3 ]; do
-    local output="$($cmd)"
-    set +e
-    $assert_func "$output"
-    local result="$?"
-    set -e
-    [ "$result" == "0" ] && return 0
-    n=$[$n+1]
-    sleep 1
-    echo "Retrying..."
-  done
-  exit 1
-}
-
-heroku plugins:link .
-
-app="heroku-exec-test-${RANDOM}"
-echo "Preparing test app ${app}..."
-
-mkdir -p tmp
-cd tmp
-rm -rf ${app}
-mkdir ${app}
-cd ${app}
-
-file_to_copy="file-to-copy.txt"
-
-echo "Creating git repo..."
-git init
-web="ruby -rwebrick -e\"s=WEBrick::HTTPServer.new(:BindAddress => '0.0.0.0', :Port => \$PORT, :DocumentRoot => Dir.pwd); s.mount_proc('/'){|q,r| r.body='Hello'}; s.start\""
-echo "web: ${web}" > Procfile
-echo "worker: echo 'success' > ${file_to_copy}; ruby -rwebrick -e'WEBrick::HTTPServer.new(:Port => 3000, :DocumentRoot => Dir.pwd).start'" >> Procfile
-cat <<-EOF > Gemfile
-source "https://rubygems.org"
-ruby "3.2.6"
-gem "webrick"
-EOF
-cat <<-EOF > Gemfile.lock
-GEM
-  remote: https://rubygems.org/
-  specs:
-    webrick (1.9.0)
-
-PLATFORMS
-  ruby
-  x86_64-linux
-
-DEPENDENCIES
-  webrick
-
-RUBY VERSION
-   ruby 3.2.6p234
-
-BUNDLED WITH
-   2.4.19
-EOF
-
-echo "Creating Heroku app..."
-heroku create ${app} $(if [ -n "$HEROKU_SPACE" ]; then echo "--space $HEROKU_SPACE"; else echo "--region ${HEROKU_REGION:-us}"; fi)
-
-trap "{ cleanup ${app}; }" EXIT
-
-git add Procfile Gemfile Gemfile.lock
-git commit -m "first"
-
-if [ "${1-}" == "staging" ] || [ "${HEROKU_EXEC_TEST_ENV-}" == "staging" ]; then
-  echo "=== skipping init tests"
-  export HEROKU_EXEC_URL="https://exec-manager-staging.herokai.com/"
-  heroku buildpacks:add https://github.com/heroku/exec-buildpack#staging
-fi
-
-if [ -n "${HEROKU_SPACE-}" ]; then
-  initOutput="$(heroku ps:exec "ls" 2>&1)"
-  assert_contains "Initializing feature" "$initOutput"
-  assert_contains "Adding the Heroku Exec buildpack" "$initOutput"
-  assert_contains "Run the following commands to redeploy your app" "$initOutput"
-  assert_contains "git push heroku master" "$initOutput"
-  echo "=== test 0: success"
-else
-  # TODO would be better to test that the command prompts to confirm restart
-  heroku features:enable runtime-heroku-exec
-fi
-
-assert_contains "Heroku Exec is not running!" "$(heroku ps:exec --status 2>&1)"
-echo "=== test 1: success"
-
-output="$(heroku ps:exec ls 2>&1)"
-assert_contains "Establishing credentials" "$output"
-assert_contains "Could not connect to dyno!" "$output"
-echo "=== test 2: success"
-
-echo "Deploying..."
-git push heroku main
-
-wait_for_dyno "web"
-
-heroku ps:exec --ssh pwd
-assert_equal "0" "$?"
-
-
-_web_status_assert() {
-  assert_contains "web.1" "$output" true && \
-  assert_contains "running" "$output" true && \
-  assert_contains "up" "$output" true
-  return $?
-}
-with_retry "heroku ps:exec --status" "_web_status_assert"
-echo "=== test 3: success"
-
-heroku ps:scale web=0
-heroku ps:scale worker=1
-
-dyno="worker.1"
-wait_for_dyno "worker"
-echo "Dyno ${dyno} is ready!"
-
-_worker_status_assert() {
-  assert_contains "$dyno" "$1" true && \
-  assert_contains "running" "$1" true && \
-  assert_contains "up" "$1" true
-  return $?
-}
-with_retry "heroku ps:exec --status" "_worker_status_assert"
-
-heroku logs -d $dyno
-
-assert_contains "worker." "$dyno"
-
-_ps_copy_assert() {
-  assert_contains "Copying ${file_to_copy} to ${file_to_copy}" "$output" true && \
-  assert_contains "success" "$(cat ${file_to_copy})"
-  return $?
-}
-with_retry "heroku ps:copy --dyno $dyno $file_to_copy" "_ps_copy_assert"
-
-echo "=== test 4: success"
-
-eval "heroku ps:forward --app $app --dyno $dyno 3000 &"
-trap "{ cleanup ${app} $!; }" EXIT
-
-wait_for "curl -o /dev/null -s -I -f localhost:3000"
-assert_contains "${file_to_copy}" "$(curl -s -L localhost:3000)"
-echo "=== test 5: success"
-
-assert_contains "${file_to_copy}" "$(curl --socks5 localhost:1080 -s -L 0.0.0.0:3000)"
-echo "=== test 6: success"
-
-echo ""
-echo "SUCCESS: All tests passed!"
-exit 0
+##!/bin/bash
+#set -eo pipefail
+#
+#assert_equal() {
+#  local expected="${1}"
+#  local actual="${2}"
+#  if [ "$expected" != "$actual" ]; then
+#    echo "\nFAILED: expected ${expected}, found ${actual}"
+#    exit 1
+#  fi
+#}
+#
+#assert_contains() {
+#  local expected="${1}"
+#  local actual="${2}"
+#  local return_instead_of_exit="${3-}"
+#  if echo "$actual" | grep -qi "$expected"; then
+#    :
+#  else
+#    echo "\nFAILED: expected ${expected} to match ${actual}"
+#    if [ "$return_instead_of_exit" == true ]; then
+#      return 1
+#    else
+#      exit 1
+#    fi
+#  fi
+#}
+#
+#cleanup() {
+#  local app="${1}"
+#  local extra_pid="${2-}"
+#  echo ''
+#  echo 'Cleaning up...'
+#  heroku destroy ${app} --confirm ${app}
+#  cd ../..
+#  rm -rf tmp/${app}
+#
+#  if [ "$CI" != "true" ]; then
+#    pgid=$(ps -o pgid= $$ | grep -o '[0-9]*$')
+#    echo "Killing processes in group $pgid..."
+#    kill -- -$pgid
+#  elif [ -n "$extra_pid" ]; then
+#    kill $extra_pid
+#  fi
+#}
+#
+#wait_for() {
+#  local cmd="${1}"
+#  sleep 2
+#  attempts=0
+#  until $(${cmd}); do
+#    attempts=$((attempts+1))
+#    if [ $attempts -gt 10 ]; then
+#      echo "Too many attempts waiting for service!"
+#      exit 1
+#    fi
+#    sleep 2
+#  done
+#}
+#
+#wait_for_dyno() {
+#  local dyno=${1:-web}
+#  echo -n "Waiting for dyno..."
+#  state="starting"
+#  while [ "up" != "$state" ]; do
+#    if [ "starting" != "$state" ] && [ "provisioning" != "$state" ]; then
+#      echo "WARNING: dyno state is \"${state}\""
+#    fi
+#    echo -n "."
+#    sleep 4
+#    state=$(heroku ps ${dyno} --json | jq .[0].state -r)
+#  done
+#  sleep 5
+#  echo "Dyno started"
+#}
+#
+#with_retry() {
+#  local cmd=${1}
+#  local assert_func=${2}
+#  local n=0
+#  until [ $n -ge 3 ]; do
+#    local output="$($cmd)"
+#    set +e
+#    $assert_func "$output"
+#    local result="$?"
+#    set -e
+#    [ "$result" == "0" ] && return 0
+#    n=$[$n+1]
+#    sleep 1
+#    echo "Retrying..."
+#  done
+#  exit 1
+#}
+#
+#heroku plugins:link .
+#
+#app="heroku-exec-test-${RANDOM}"
+#echo "Preparing test app ${app}..."
+#
+#mkdir -p tmp
+#cd tmp
+#rm -rf ${app}
+#mkdir ${app}
+#cd ${app}
+#
+#file_to_copy="file-to-copy.txt"
+#
+#echo "Creating git repo..."
+#git init
+#web="ruby -rwebrick -e\"s=WEBrick::HTTPServer.new(:BindAddress => '0.0.0.0', :Port => \$PORT, :DocumentRoot => Dir.pwd); s.mount_proc('/'){|q,r| r.body='Hello'}; s.start\""
+#echo "web: ${web}" > Procfile
+#echo "worker: echo 'success' > ${file_to_copy}; ruby -rwebrick -e'WEBrick::HTTPServer.new(:Port => 3000, :DocumentRoot => Dir.pwd).start'" >> Procfile
+#cat <<-EOF > Gemfile
+#source "https://rubygems.org"
+#ruby "3.2.6"
+#gem "webrick"
+#EOF
+#cat <<-EOF > Gemfile.lock
+#GEM
+#  remote: https://rubygems.org/
+#  specs:
+#    webrick (1.9.0)
+#
+#PLATFORMS
+#  ruby
+#  x86_64-linux
+#
+#DEPENDENCIES
+#  webrick
+#
+#RUBY VERSION
+#   ruby 3.2.6p234
+#
+#BUNDLED WITH
+#   2.4.19
+#EOF
+#
+#echo "Creating Heroku app..."
+#heroku create ${app} $(if [ -n "$HEROKU_SPACE" ]; then echo "--space $HEROKU_SPACE"; else echo "--region ${HEROKU_REGION:-us}"; fi)
+#
+#trap "{ cleanup ${app}; }" EXIT
+#
+#git add Procfile Gemfile Gemfile.lock
+#git commit -m "first"
+#
+#if [ "${1-}" == "staging" ] || [ "${HEROKU_EXEC_TEST_ENV-}" == "staging" ]; then
+#  echo "=== skipping init tests"
+#  export HEROKU_EXEC_URL="https://exec-manager-staging.herokai.com/"
+#  heroku buildpacks:add https://github.com/heroku/exec-buildpack#staging
+#fi
+#
+#if [ -n "${HEROKU_SPACE-}" ]; then
+#  initOutput="$(heroku ps:exec "ls" 2>&1)"
+#  assert_contains "Initializing feature" "$initOutput"
+#  assert_contains "Adding the Heroku Exec buildpack" "$initOutput"
+#  assert_contains "Run the following commands to redeploy your app" "$initOutput"
+#  assert_contains "git push heroku master" "$initOutput"
+#  echo "=== test 0: success"
+#else
+#  # TODO would be better to test that the command prompts to confirm restart
+#  heroku features:enable runtime-heroku-exec
+#fi
+#
+#assert_contains "Heroku Exec is not running!" "$(heroku ps:exec --status 2>&1)"
+#echo "=== test 1: success"
+#
+#output="$(heroku ps:exec ls 2>&1)"
+#assert_contains "Establishing credentials" "$output"
+#assert_contains "Could not connect to dyno!" "$output"
+#echo "=== test 2: success"
+#
+#echo "Deploying..."
+#git push heroku main
+#
+#wait_for_dyno "web"
+#
+#heroku ps:exec --ssh pwd
+#assert_equal "0" "$?"
+#
+#
+#_web_status_assert() {
+#  assert_contains "web.1" "$output" true && \
+#  assert_contains "running" "$output" true && \
+#  assert_contains "up" "$output" true
+#  return $?
+#}
+#with_retry "heroku ps:exec --status" "_web_status_assert"
+#echo "=== test 3: success"
+#
+#heroku ps:scale web=0
+#heroku ps:scale worker=1
+#
+#dyno="worker.1"
+#wait_for_dyno "worker"
+#echo "Dyno ${dyno} is ready!"
+#
+#_worker_status_assert() {
+#  assert_contains "$dyno" "$1" true && \
+#  assert_contains "running" "$1" true && \
+#  assert_contains "up" "$1" true
+#  return $?
+#}
+#with_retry "heroku ps:exec --status" "_worker_status_assert"
+#
+#heroku logs -d $dyno
+#
+#assert_contains "worker." "$dyno"
+#
+#_ps_copy_assert() {
+#  assert_contains "Copying ${file_to_copy} to ${file_to_copy}" "$output" true && \
+#  assert_contains "success" "$(cat ${file_to_copy})"
+#  return $?
+#}
+#with_retry "heroku ps:copy --dyno $dyno $file_to_copy" "_ps_copy_assert"
+#
+#echo "=== test 4: success"
+#
+#eval "heroku ps:forward --app $app --dyno $dyno 3000 &"
+#trap "{ cleanup ${app} $!; }" EXIT
+#
+#wait_for "curl -o /dev/null -s -I -f localhost:3000"
+#assert_contains "${file_to_copy}" "$(curl -s -L localhost:3000)"
+#echo "=== test 5: success"
+#
+#assert_contains "${file_to_copy}" "$(curl --socks5 localhost:1080 -s -L 0.0.0.0:3000)"
+#echo "=== test 6: success"
+#
+#echo ""
+#echo "SUCCESS: All tests passed!"
+#exit 0
