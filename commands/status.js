@@ -20,6 +20,7 @@ module.exports = function(topic, command) {
 };
 
 function * run(context, heroku) {
+  cli.warn(`This command is now maintained as part of the Heroku CLI. Update to the latest version of the CLI or uninstall this archived plugin by running ${cli.color.cmd('heroku plugins:uninstall @heroku-cli/plugin-ps-exec')}`)
   yield exec.initFeature(context, heroku, function *(configVars) {
     yield exec.checkStatus(context, heroku, configVars);
   });
